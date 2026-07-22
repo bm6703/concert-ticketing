@@ -16,9 +16,9 @@ services:
     ports:
       - "6379:6379"
 
-  app:
+  app1:
     build: .
-    container_name: concert-ticketing-app
+    container_name: concert-ticketing-app1
     depends_on:
       - mysql
       - redis
@@ -28,8 +28,30 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+
+  app2:
+    build: .
+    container_name: concert-ticketing-app2
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/concert_ticketing
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+
+  nginx:
+    image: nginx:1.27
+    container_name: concert-ticketing-nginx
+    depends_on:
+      - app1
+      - app2
     ports:
-      - "8080:8080"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
 volumes:
   mysql-data:
