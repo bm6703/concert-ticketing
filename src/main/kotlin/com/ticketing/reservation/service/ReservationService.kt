@@ -4,6 +4,7 @@ import com.ticketing.global.exception.NotFoundException
 import com.ticketing.reservation.domain.ReservationStatus
 import com.ticketing.reservation.dto.ReservationCreateRequest
 import com.ticketing.reservation.dto.ReservationResponse
+import com.ticketing.reservation.event.ReservationEventProducer
 import com.ticketing.reservation.repository.ReservationRepository
 import org.redisson.api.RedissonClient
 import org.springframework.stereotype.Service
@@ -14,7 +15,8 @@ import java.util.concurrent.TimeUnit
 class ReservationService(
     private val reservationRepository: ReservationRepository,
     private val reservationTransactionService: ReservationTransactionService,
-    private val redissonClient: RedissonClient
+    private val redissonClient: RedissonClient,
+    private val reservationEventProducer: ReservationEventProducer
 ) {
 
     fun createReservation(request: ReservationCreateRequest): ReservationResponse {
@@ -25,11 +27,14 @@ class ReservationService(
             throw IllegalStateException("요청이 몰리고 있습니다. 잠시 후 다시 시도해주세요.")
         }
 
-        try {
-            return reservationTransactionService.reserve(request)
+        val response = try {
+            reservationTransactionService.reserve(request)
         } finally {
             lock.unlock()
         }
+
+        reservationEventProducer.publishReservationConfirmed(response)
+        return response
     }
 
     @Transactional(readOnly = true)
