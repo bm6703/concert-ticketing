@@ -29,6 +29,8 @@ dependencies {
 	implementation("org.redisson:redisson-spring-boot-starter:4.6.1")
 	implementation("org.redisson:redisson-spring-cache:4.6.1")
 	implementation("org.springframework.boot:spring-boot-starter-kafka")
+	implementation("org.springframework.boot:spring-boot-starter-batch")
+	implementation("org.springframework.boot:spring-boot-starter-batch-jdbc")
 
 	runtimeOnly("com.mysql:mysql-connector-j")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
